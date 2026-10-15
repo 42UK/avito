@@ -1,0 +1,18 @@
+export function Pagination({
+  page,
+  totalPages,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+}) {
+  if (totalPages <= 1) return null;
+  return (
+    <nav className="pagination" aria-label="Страницы">
+      <button className="button button-secondary" disabled={page === 0} onClick={() => onChange(page - 1)}>← Назад</button>
+      <span>Страница {page + 1} из {totalPages}</span>
+      <button className="button button-secondary" disabled={page + 1 >= totalPages} onClick={() => onChange(page + 1)}>Дальше →</button>
+    </nav>
+  );
+}

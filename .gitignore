@@ -1,6 +1,13 @@
 HELP.md
+.DS_Store
 .gradle
 build/
+/target/
+backups/
+.env
+.env.*
+!.env.example
+.mcp.json
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/

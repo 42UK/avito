@@ -1,9 +1,66 @@
 services:
   postgres:
-    image: postgres:latest
+    image: postgres:16-alpine
     environment:
-      POSTGRES_DB: mydatabase
-      POSTGRES_PASSWORD: admin
-      POSTGRES_USER: admin
+      POSTGRES_DB: ${POSTGRES_DB:-avito_deals}
+      POSTGRES_USER: ${POSTGRES_USER:-avito_deals}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set a non-empty POSTGRES_PASSWORD in the root .env file}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: avito-deals-backend:local
+    environment:
+      SERVER_PORT: "8080"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-avito_deals}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-avito_deals}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set a non-empty POSTGRES_PASSWORD in the root .env file}
+      AVITO_DEALS_INGESTION_SOURCE: ${AVITO_DEALS_INGESTION_SOURCE:-avito}
+      AVITO_REGION_SLUG: ${AVITO_REGION_SLUG:-rossiya}
+      AVITO_MAX_PAGES: ${AVITO_MAX_PAGES:-2}
+      AVITO_REQUEST_TIMEOUT: ${AVITO_REQUEST_TIMEOUT:-15s}
+      AVITO_MINIMUM_REQUEST_INTERVAL: ${AVITO_MINIMUM_REQUEST_INTERVAL:-30s}
+      AVITO_RATE_LIMIT_FALLBACK_COOLDOWN: ${AVITO_RATE_LIMIT_FALLBACK_COOLDOWN:-5m}
+      AVITO_MAXIMUM_RESPONSE_BYTES: ${AVITO_MAXIMUM_RESPONSE_BYTES:-5242880}
+    ports:
+      - "127.0.0.1:${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/actuator/health/readiness || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: avito-deals-frontend:local
+    ports:
+      - "127.0.0.1:${FRONTEND_PORT:-5173}:8080"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://127.0.0.1:8080/healthz || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+volumes:
+  postgres_data:

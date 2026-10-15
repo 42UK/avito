@@ -1,3 +1,47 @@
 spring:
   application:
     name: Avi
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
+
+avito-deals:
+  ingestion:
+    source: ${AVITO_DEALS_INGESTION_SOURCE:avito}
+    avito:
+      region-slug: ${AVITO_REGION_SLUG:rossiya}
+      max-pages: ${AVITO_MAX_PAGES:2}
+      request-timeout: ${AVITO_REQUEST_TIMEOUT:15s}
+      minimum-request-interval: ${AVITO_MINIMUM_REQUEST_INTERVAL:30s}
+      rate-limit-fallback-cooldown: ${AVITO_RATE_LIMIT_FALLBACK_COOLDOWN:5m}
+      maximum-response-bytes: ${AVITO_MAXIMUM_RESPONSE_BYTES:5242880}
+  pricing:
+    confidence:
+      medium-min-sample-size: 4
+      high-min-sample-size: 5
+  scoring:
+    minimum-discount-percent: 20
+    minimum-deal-score: 40
+    minimum-match-confidence: 0.90
+    suspicious-discount-percent: 60
+    maximum-rejected-deal-score: 25
+  notifications:
+    max-attempts: 3
+    telegram:
+      bot-token: ${TELEGRAM_BOT_TOKEN:}
+      chat-id: ${TELEGRAM_CHAT_ID:}
+      timeout: ${TELEGRAM_TIMEOUT:10s}
+
+logging:
+  level:
+    ru.avitodeals.search.application.SearchScheduler: INFO

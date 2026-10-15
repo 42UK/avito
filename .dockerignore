@@ -1,0 +1,12 @@
+.git
+.gradle
+build
+target
+backups
+.env
+.env.*
+.idea
+.claude
+.mcp.json
+avito-deals
+frontend
