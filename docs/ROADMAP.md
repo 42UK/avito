@@ -3,7 +3,7 @@
 ## P0 — verify and stabilize existing MVP
 
 - [x] Verify ingestion-to-match-to-price-to-score event flow; added post-commit analysis in an isolated transaction and an H2 persistence/source-isolation integration test.
-- Add source provenance (`REAL`, `IMPORTED`, `DEMO`) and ensure pricing excludes demo data from real-market samples.
+- [x] Persist source provenance (`REAL`, `IMPORTED`, `DEMO`), expose it in the API/UI, and include it in comparable filtering. CSV/JSON import and verification of permitted real-source access remain outstanding.
 - Add CSV/JSON import with strict file size, schema, URL and field validation.
 - Add a broad, configurable electronics search taxonomy that does not require a model list; do not represent this as available from Avito unless an allowed source supports it.
 - Add explicit insufficient-data and data freshness semantics to market estimates.

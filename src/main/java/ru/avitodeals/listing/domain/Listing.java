@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import ru.avitodeals.listing.application.DataOrigin;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -35,6 +36,10 @@ public class Listing {
 
 	@Column(name = "external_id", nullable = false, length = 255)
 	private String externalId;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "data_origin", nullable = false, length = 16)
+	private DataOrigin dataOrigin = DataOrigin.DEMO;
 
 	@Column(name = "seller_id")
 	private UUID sellerId;
@@ -104,6 +109,14 @@ public class Listing {
 
 	public void setExternalId(String externalId) {
 		this.externalId = externalId;
+	}
+
+	public DataOrigin getDataOrigin() {
+		return dataOrigin;
+	}
+
+	public void setDataOrigin(DataOrigin dataOrigin) {
+		this.dataOrigin = dataOrigin;
 	}
 
 	public UUID getSellerId() {

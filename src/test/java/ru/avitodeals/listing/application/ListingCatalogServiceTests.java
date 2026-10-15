@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest(properties = {
@@ -114,6 +115,16 @@ class ListingCatalogServiceTests {
 				.orElseThrow().getStatus());
 		assertEquals(1, priceHistoryRepository.findByListingIdOrderByObservedAtAsc(
 				created.listing().id()).size());
+	}
+
+	@Test
+	void existingListingCannotBeReclassifiedToAnotherDataOrigin() {
+		catalog.upsert(listingData("origin-1", "50.00"), FIRST_SEEN);
+		ListingData reclassified = new ListingData("mock-source", "origin-1", "Listing origin-1", null,
+				new BigDecimal("50.00"), "RUB", "GOOD", "Moscow",
+				"https://example.invalid/origin-1", null, null, DataOrigin.IMPORTED);
+
+		assertThrows(IllegalArgumentException.class, () -> catalog.upsert(reclassified, SECOND_SEEN));
 	}
 
 	private ListingData listingData(String externalId, String price) {

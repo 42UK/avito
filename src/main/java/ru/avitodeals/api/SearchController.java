@@ -11,7 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import ru.avitodeals.ingestion.application.IngestionReport;
 import ru.avitodeals.search.application.SearchManagementService;
+import ru.avitodeals.search.application.SearchScheduler;
 import ru.avitodeals.search.application.SearchView;
 
 import java.net.URI;
@@ -22,9 +24,11 @@ import java.util.UUID;
 public class SearchController {
 
 	private final SearchManagementService searches;
+	private final SearchScheduler scheduler;
 
-	public SearchController(SearchManagementService searches) {
+	public SearchController(SearchManagementService searches, SearchScheduler scheduler) {
 		this.searches = searches;
+		this.scheduler = scheduler;
 	}
 
 	@GetMapping
@@ -37,6 +41,11 @@ public class SearchController {
 	@GetMapping("/{id}")
 	public SearchView get(@PathVariable UUID id) {
 		return searches.get(id);
+	}
+
+	@PostMapping("/{id}/run")
+	public IngestionReport runNow(@PathVariable UUID id) {
+		return scheduler.runNow(id);
 	}
 
 	@PostMapping

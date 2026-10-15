@@ -2,6 +2,17 @@ import { Link } from 'react-router-dom';
 import { formatDate, formatMoney, humanize } from '../format';
 import type { DealCard, Listing } from '../types';
 
+function originLabel(origin: Listing['dataOrigin']): string {
+  switch (origin) {
+    case 'REAL':
+      return 'Внешний источник';
+    case 'IMPORTED':
+      return 'Импорт';
+    case 'DEMO':
+      return 'Демо';
+  }
+}
+
 export function ListingsTable({ listings, deals = false }: { listings: (Listing | DealCard)[]; deals?: boolean }) {
   const rows = deals ? (listings as DealCard[]) : null;
   return (
@@ -24,6 +35,7 @@ export function ListingsTable({ listings, deals = false }: { listings: (Listing 
                   </div>
                   <div className="muted small">
                     {listing.location || 'Местоположение не указано'} · {listing.source === 'avito' ? 'Авито' : listing.source}
+                    {' · '}{originLabel(listing.dataOrigin)}
                   </div>
                 </td>
                 <td className="nowrap">{formatMoney(listing.price, listing.currency)}</td>

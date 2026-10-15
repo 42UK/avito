@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import ru.avitodeals.ingestion.application.ListingSource;
 import ru.avitodeals.ingestion.application.RawListing;
 import ru.avitodeals.ingestion.application.SearchCriteria;
+import ru.avitodeals.listing.application.DataOrigin;
 
 import java.math.BigDecimal;
 import java.net.URI;
@@ -48,6 +49,11 @@ public class AvitoListingSource implements ListingSource {
 	@Override
 	public String sourceId() {
 		return SOURCE_ID;
+	}
+
+	@Override
+	public DataOrigin dataOrigin() {
+		return DataOrigin.REAL;
 	}
 
 	@Override

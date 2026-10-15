@@ -91,4 +91,29 @@ public class SearchScheduler {
 			runLock.unlock();
 		}
 	}
+
+	public IngestionReport runNow(UUID searchId) {
+		ReentrantLock runLock = RUN_LOCKS[Math.floorMod(searchId.hashCode(), RUN_LOCKS.length)];
+		runLock.lock();
+		try {
+			SearchRunSnapshot search = claimService.claimNow(searchId);
+			try {
+				LOGGER.info("Starting manually requested ingestion for search {}", search.id());
+				IngestionReport report = ingestionPipeline.ingest(
+						IngestionRequest.forSearch(new SearchCriteria(search.query(), search.filters()), search.id()));
+				LOGGER.info("Manual ingestion for search {} completed: processed={}, created={}, "
+								+ "duplicates={}, priceChanges={}, removed={}",
+						search.id(), report.processed(), report.created(), report.duplicates(),
+						report.priceChanges(), report.removed());
+				return report;
+			} catch (ListingSourceException exception) {
+				if (exception.getStatusCode() == 429) {
+					claimService.releaseRateLimitedClaim(search.id(), search.claimedAt());
+				}
+				throw exception;
+			}
+		} finally {
+			runLock.unlock();
+		}
+	}
 }

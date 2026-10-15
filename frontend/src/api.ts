@@ -1,5 +1,6 @@
 import type {
   ApiProblem,
+  IngestionReport,
   DealDetails,
   DealCard,
   Listing,
@@ -63,6 +64,9 @@ export const api = {
   listings: (page = 0, size = 10) => request<Page<Listing>>(`/listings${pageQuery(page, size)}`),
   searches: (page = 0, size = 10) => request<Page<Search>>(`/searches${pageQuery(page, size)}`),
   createSearch: (input: SearchInput) => request<Search>('/searches', { method: 'POST', body: JSON.stringify(input) }),
+  runSearch: (id: string) => request<IngestionReport>(
+    `/searches/${encodeURIComponent(id)}/run`, { method: 'POST' },
+  ),
   updateSearch: (id: string, input: SearchInput) => request<Search>(`/searches/${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: JSON.stringify(input),

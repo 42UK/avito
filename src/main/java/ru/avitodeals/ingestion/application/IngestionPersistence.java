@@ -7,6 +7,7 @@ import ru.avitodeals.listing.application.ListingCatalog;
 import ru.avitodeals.listing.application.ListingChange;
 import ru.avitodeals.listing.application.ListingData;
 import ru.avitodeals.listing.application.ListingSnapshot;
+import ru.avitodeals.listing.application.DataOrigin;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -37,6 +38,19 @@ public class IngestionPersistence {
 			IngestionRequest request,
 			List<RawListing> fetched,
 			Instant observedAt) {
+		return persist(sourceId, DataOrigin.DEMO, request, fetched, observedAt);
+	}
+
+	@Transactional
+	public IngestionReport persist(
+			String sourceId,
+			DataOrigin dataOrigin,
+			IngestionRequest request,
+			List<RawListing> fetched,
+			Instant observedAt) {
+		if (dataOrigin == null) {
+			throw new IllegalArgumentException("Listing data origin is required");
+		}
 		if (fetched == null) {
 			throw new IllegalStateException("Listing source returned no snapshot");
 		}
@@ -52,7 +66,7 @@ public class IngestionPersistence {
 		int created = 0;
 		int priceChanges = 0;
 		for (RawListing rawListing : distinct.values()) {
-			ListingData data = toListingData(sourceId, rawListing);
+			ListingData data = toListingData(sourceId, dataOrigin, rawListing);
 			ListingChange change = catalog.upsert(data, persistenceObservedAt);
 			ListingSnapshot listing = change.listing();
 			eventPublisher.publishEvent(new ListingObserved(listing.id(), listing.sourceId(),
@@ -85,9 +99,10 @@ public class IngestionPersistence {
 				created, priceChanges, removed);
 	}
 
-	private ListingData toListingData(String sourceId, RawListing rawListing) {
+	private ListingData toListingData(String sourceId, DataOrigin dataOrigin, RawListing rawListing) {
 		return new ListingData(sourceId, rawListing.externalId(), rawListing.title(),
 				rawListing.description(), rawListing.price(), rawListing.currency(), rawListing.condition(),
-				rawListing.location(), rawListing.url(), rawListing.sellerExternalId(), rawListing.sellerName());
+				rawListing.location(), rawListing.url(), rawListing.sellerExternalId(),
+				rawListing.sellerName(), dataOrigin);
 	}
 }

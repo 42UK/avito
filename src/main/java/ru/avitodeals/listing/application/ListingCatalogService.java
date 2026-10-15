@@ -49,6 +49,7 @@ public class ListingCatalogService implements ListingCatalog {
 
 		if (listing == null) {
 			listing = new Listing(data.sourceId(), data.externalId());
+			listing.setDataOrigin(data.dataOrigin());
 			listing.setFirstSeenAt(observedAt);
 			listing.setPrice(data.price());
 			listing.setCurrency(currency);
@@ -62,6 +63,9 @@ public class ListingCatalogService implements ListingCatalog {
 
 		if (observedAt.isBefore(listing.getLastSeenAt())) {
 			return new ListingChange(toSnapshot(listing), false, false, false, null, null);
+		}
+		if (listing.getDataOrigin() != data.dataOrigin()) {
+			throw new IllegalArgumentException("A listing's data origin cannot change for the same source ID");
 		}
 
 		boolean reactivated = listing.getStatus() == ListingStatus.REMOVED;
@@ -159,6 +163,7 @@ public class ListingCatalogService implements ListingCatalog {
 		if (data == null || observedAt == null
 				|| blankOrTooLong(data.sourceId(), 100)
 				|| blankOrTooLong(data.externalId(), 255)
+				|| data.dataOrigin() == null
 				|| data.title() == null || data.title().isBlank()
 				|| data.url() == null || data.url().isBlank()
 				|| data.price() == null || data.price().signum() < 0

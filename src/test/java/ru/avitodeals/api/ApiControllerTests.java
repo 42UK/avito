@@ -19,7 +19,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 		"spring.datasource.username=sa",
 		"spring.datasource.password=",
 		"spring.flyway.enabled=false",
-		"spring.jpa.hibernate.ddl-auto=create-drop"
+		"spring.jpa.hibernate.ddl-auto=create-drop",
+		"avito-deals.ingestion.source=mock",
+		"avito-deals.search.scheduler.fixed-delay-ms=3600000"
 })
 @AutoConfigureMockMvc
 class ApiControllerTests {
@@ -51,6 +53,14 @@ class ApiControllerTests {
 				.andExpect(jsonPath("$.name").value("Updated"));
 		mvc.perform(delete("/api/searches/{id}", id)).andExpect(status().isNoContent());
 		mvc.perform(get("/api/searches/{id}", id)).andExpect(status().isNotFound());
+		String runnableSearch = mvc.perform(post("/api/searches").contentType("application/json")
+						.content(request.replace("\"query\":\"Google Pixel\"", "\"query\":\"Pixel\"")))
+				.andReturn().getResponse().getHeader("Location");
+		String runnableId = runnableSearch.substring(runnableSearch.lastIndexOf('/') + 1);
+		mvc.perform(post("/api/searches/{id}/run", runnableId))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.processed").value(1))
+				.andExpect(jsonPath("$.created").value(1));
 		mvc.perform(get("/api/listings").param("size", "101")).andExpect(status().isBadRequest());
 		mvc.perform(post("/api/searches").contentType("application/json")
 						.content(request.replace("\"priceMin\":10000", "\"priceMin\":90000")
@@ -60,10 +70,10 @@ class ApiControllerTests {
 		mvc.perform(get("/api/deals")).andExpect(status().isOk())
 				.andExpect(jsonPath("$.totalElements").value(0));
 		mvc.perform(get("/api/listings")).andExpect(status().isOk())
-				.andExpect(jsonPath("$.totalElements").value(0));
+				.andExpect(jsonPath("$.totalElements").value(1));
 		mvc.perform(get("/api/deals/{id}", java.util.UUID.randomUUID())).andExpect(status().isNotFound());
 		mvc.perform(get("/api/stats")).andExpect(status().isOk())
-				.andExpect(jsonPath("$.searches").value(0));
+				.andExpect(jsonPath("$.searches").value(1));
 		mvc.perform(post("/api/profitability/calculate")
 						.contentType("application/json")
 						.content("""
@@ -92,7 +102,8 @@ class ApiControllerTests {
 								"""))
 				.andExpect(status().isBadRequest());
 		mvc.perform(get("/v3/api-docs")).andExpect(status().isOk())
-				.andExpect(jsonPath("$.paths['/api/searches']").exists());
+				.andExpect(jsonPath("$.paths['/api/searches']").exists())
+				.andExpect(jsonPath("$.paths['/api/searches/{id}/run']").exists());
 		mvc.perform(get("/actuator/health/readiness")).andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("UP"));
 	}

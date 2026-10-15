@@ -40,6 +40,6 @@ public class IngestionPipeline {
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	public IngestionReport ingest(IngestionRequest request) {
 		List<RawListing> fetched = source.fetch(request.criteria());
-		return persistence.persist(source.sourceId(), request, fetched, clock.instant());
+		return persistence.persist(source.sourceId(), source.dataOrigin(), request, fetched, clock.instant());
 	}
 }

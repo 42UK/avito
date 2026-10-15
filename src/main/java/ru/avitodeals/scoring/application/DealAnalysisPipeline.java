@@ -67,6 +67,7 @@ public class DealAnalysisPipeline {
 		List<AnalyzableListing> sameMarketListings = listingQueries.findByIds(productMatches.keySet()).stream()
 				.filter(listing -> listing.status().equals("ACTIVE"))
 				.filter(listing -> listing.source().equals(candidate.source()))
+				.filter(listing -> listing.dataOrigin() == candidate.dataOrigin())
 				.filter(listing -> listing.currency().equals(candidate.currency()))
 				.map(listing -> new AnalyzableListing(listing, productMatches.get(listing.id()),
 						extractAttributes(listing)))

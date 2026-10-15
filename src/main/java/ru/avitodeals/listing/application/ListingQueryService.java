@@ -74,7 +74,8 @@ public class ListingQueryService implements ListingQueries {
 		return new ListingView(listing.getId(), listing.getSource(), listing.getExternalId(),
 				listing.getTitle(), listing.getDescription(), listing.getPrice(), listing.getCurrency(),
 				listing.getCondition().name(), listing.getLocation(), listing.getUrl(), listing.getStatus().name(),
-				listing.getSellerId(), listing.getFirstSeenAt(), listing.getLastSeenAt());
+				listing.getSellerId(), listing.getFirstSeenAt(), listing.getLastSeenAt(),
+				listing.getDataOrigin());
 	}
 
 	private static void validatePage(int page, int size) {

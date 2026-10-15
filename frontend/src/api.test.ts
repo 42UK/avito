@@ -61,4 +61,16 @@ describe('REST API client', () => {
     }));
     expect(result.netProfit).toBe(400);
   });
+
+  it('starts a saved search immediately through the run endpoint', async () => {
+    const report = { processed: 3, duplicates: 1, created: 2, priceChanges: 0, removed: 0 };
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify(report), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(api.runSearch('search/1')).resolves.toEqual(report);
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/searches/search%2F1/run', expect.objectContaining({
+      method: 'POST',
+    }));
+  });
 });

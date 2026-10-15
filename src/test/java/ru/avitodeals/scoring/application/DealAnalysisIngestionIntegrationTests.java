@@ -7,7 +7,9 @@ import ru.avitodeals.ingestion.application.IngestionPersistence;
 import ru.avitodeals.ingestion.application.IngestionRequest;
 import ru.avitodeals.ingestion.application.RawListing;
 import ru.avitodeals.ingestion.application.SearchCriteria;
+import ru.avitodeals.listing.application.DataOrigin;
 import ru.avitodeals.listing.infrastructure.persistence.ListingRepository;
+import ru.avitodeals.listing.application.ListingQueries;
 import ru.avitodeals.pricing.infrastructure.persistence.MarketPriceRepository;
 import ru.avitodeals.product.infrastructure.persistence.ListingProductMatchRepository;
 import ru.avitodeals.scoring.infrastructure.persistence.DealScoreRepository;
@@ -45,6 +47,9 @@ class DealAnalysisIngestionIntegrationTests {
 	@Autowired
 	private ListingRepository listings;
 
+	@Autowired
+	private ListingQueries listingQueries;
+
 	@Test
 	void ingestionMatchesListingsPricesOnlyWithinSameSourceAndRescoresAffectedPeers() {
 		Instant observedAt = Instant.parse("2026-10-15T12:00:00Z");
@@ -61,6 +66,10 @@ class DealAnalysisIngestionIntegrationTests {
 				.orElseThrow().getId();
 		UUID secondListingId = listings.findBySourceAndExternalId("avito", "avito-2")
 				.orElseThrow().getId();
+		assertEquals(DataOrigin.REAL, listings.findById(firstListingId).orElseThrow().getDataOrigin());
+		assertEquals(DataOrigin.REAL, listingQueries.find(firstListingId).orElseThrow().dataOrigin());
+		assertEquals(DataOrigin.DEMO,
+				listings.findBySourceAndExternalId("demo", "demo-1").orElseThrow().getDataOrigin());
 		var avitoMatches = productMatches.findAll().stream()
 				.filter(match -> match.getListingId().equals(firstListingId)
 						|| match.getListingId().equals(secondListingId))
@@ -73,7 +82,7 @@ class DealAnalysisIngestionIntegrationTests {
 	}
 
 	private int ingestAvito(RawListing listing, Instant observedAt) {
-		return ingestionPersistence.persist("avito", IngestionRequest.forSearch(
+		return ingestionPersistence.persist("avito", DataOrigin.REAL, IngestionRequest.forSearch(
 				SearchCriteria.all(), null), List.of(listing), observedAt).created();
 	}
 

@@ -9,6 +9,7 @@ describe('listing table', () => {
     const listing: Listing = {
       id: 'listing-id',
       source: 'avito',
+      dataOrigin: 'REAL',
       externalId: '8376354125',
       title: 'iPhone 17',
       description: 'Public listing',
@@ -29,5 +30,6 @@ describe('listing table', () => {
     expect(link).toHaveAttribute('href', listing.url);
     expect(link).toHaveAttribute('target', '_blank');
     expect(screen.getByText(/Авито/)).toBeInTheDocument();
+    expect(screen.getByText(/Внешний источник/)).toBeInTheDocument();
   });
 });

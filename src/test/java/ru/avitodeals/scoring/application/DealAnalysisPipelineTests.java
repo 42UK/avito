@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.avitodeals.listing.application.ListingQueries;
 import ru.avitodeals.listing.application.ListingView;
+import ru.avitodeals.listing.application.DataOrigin;
 import ru.avitodeals.pricing.application.ComparableListings;
 import ru.avitodeals.pricing.application.MarketPriceResult;
 import ru.avitodeals.pricing.application.MarketPriceService;
@@ -56,16 +57,19 @@ class DealAnalysisPipelineTests {
 		ListingView candidate = listing(candidateId, "avito", "GOOD", "RUB", "10000.00", "ACTIVE");
 		UUID validComparableId = UUID.randomUUID();
 		UUID differentSourceId = UUID.randomUUID();
+		UUID differentOriginId = UUID.randomUUID();
 		UUID differentConditionId = UUID.randomUUID();
 		UUID removedListingId = UUID.randomUUID();
 		when(listingQueries.find(candidateId)).thenReturn(Optional.of(candidate));
 		when(productQueries.matchedListings(productId)).thenReturn(List.of(
 				matched(candidateId), matched(validComparableId), matched(differentSourceId),
+				matched(differentOriginId),
 				matched(differentConditionId), matched(removedListingId)));
 		when(listingQueries.findByIds(any())).thenReturn(List.of(
 				candidate,
 				listing(validComparableId, "avito", "GOOD", "RUB", "20000.00", "ACTIVE"),
 				listing(differentSourceId, "demo", "GOOD", "RUB", "1.00", "ACTIVE"),
+				listing(differentOriginId, "avito", DataOrigin.REAL, "GOOD", "RUB", "1.00", "ACTIVE"),
 				listing(differentConditionId, "avito", "NEW", "RUB", "1.00", "ACTIVE"),
 				listing(removedListingId, "avito", "GOOD", "RUB", "1.00", "REMOVED")));
 		PersistedMarketPrice marketPrice = marketPrice();
@@ -115,9 +119,20 @@ class DealAnalysisPipelineTests {
 
 	private static ListingView listing(
 			UUID id, String source, String condition, String currency, String price, String status) {
+		return listing(id, source, DataOrigin.DEMO, condition, currency, price, status);
+	}
+
+	private static ListingView listing(
+			UUID id,
+			String source,
+			DataOrigin dataOrigin,
+			String condition,
+			String currency,
+			String price,
+			String status) {
 		return new ListingView(id, source, id.toString(), "iPhone 16 Pro 128 GB", "Хорошее состояние",
 				new BigDecimal(price), currency, condition, "Moscow", "https://example.invalid/" + id,
-				status, null, Instant.EPOCH, Instant.EPOCH);
+				status, null, Instant.EPOCH, Instant.EPOCH, dataOrigin);
 	}
 
 	private ProductMatchResult matched(UUID listingId) {

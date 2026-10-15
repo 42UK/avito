@@ -159,6 +159,7 @@ function SearchesPage() {
   const [page, setPage] = useState(0);
   const [editing, setEditing] = useState<Search | null | false>(false);
   const [mutationError, setMutationError] = useState<string | null>(null);
+  const [mutationMessage, setMutationMessage] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const { data, error, loading, retry, setData } = useLoad(() => api.searches(page, 10), [page]);
 
@@ -190,15 +191,34 @@ function SearchesPage() {
     }
   }
 
+  async function runSearch(search: Search) {
+    setMutationError(null);
+    setMutationMessage(null);
+    setBusyId(search.id);
+    try {
+      const report = await api.runSearch(search.id);
+      setMutationMessage(
+        `Поиск «${search.name}» завершён: обработано ${report.processed}, новых ${report.created}, обновлено цен ${report.priceChanges}.`,
+      );
+      retry();
+    } catch (reason) {
+      setMutationError(reason instanceof Error ? reason.message : 'Не удалось запустить поиск.');
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   return (
     <>
-      <PageHeading eyebrow="УПРАВЛЕНИЕ" title="Сохранённые поиски" subtitle="Настройте запросы и порог оценки для мониторинга." action={<button className="button button-primary" onClick={() => { setMutationError(null); setEditing(null); }}>＋ Новый поиск</button>} />
+      <PageHeading eyebrow="УПРАВЛЕНИЕ" title="Сохранённые поиски" subtitle="Запустите сбор сейчас или настройте периодический мониторинг." action={<button className="button button-primary" onClick={() => { setMutationError(null); setMutationMessage(null); setEditing(null); }}>＋ Новый поиск</button>} />
+      <p className="notice-inline">«Запустить» немедленно обращается к источнику из AVITO_DEALS_INGESTION_SOURCE (по умолчанию avito). При HTTP 429 источник приостанавливается на период охлаждения.</p>
       {mutationError && <div className="inline-error" role="alert">{mutationError}</div>}
+      {mutationMessage && <div className="notice-inline" role="status">{mutationMessage}</div>}
       <Panel title="Ваши поиски" subtitle={data ? `${data.totalElements} сохранено` : 'Настройки запросов'}>
         {loading ? <LoadingState /> : error ? <ErrorState message={error.message} onRetry={retry} /> : data?.content.length ?
           <>
             <div className="search-list">
-              {data.content.map((search) => <SearchRow key={search.id} search={search} busy={busyId === search.id} onEdit={() => setEditing(search)} onDelete={() => void deleteSearch(search)} />)}
+              {data.content.map((search) => <SearchRow key={search.id} search={search} busy={busyId === search.id} onRun={() => void runSearch(search)} onEdit={() => setEditing(search)} onDelete={() => void deleteSearch(search)} />)}
             </div>
             <Pagination page={data.page} totalPages={data.totalPages} onChange={setPage} />
           </> : <EmptyState title="Поисков пока нет">Создайте первый поисковый запрос, чтобы сохранить его в сервисе.</EmptyState>}
@@ -208,7 +228,7 @@ function SearchesPage() {
   );
 }
 
-function SearchRow({ search, busy, onEdit, onDelete }: { search: Search; busy: boolean; onEdit: () => void; onDelete: () => void }) {
+function SearchRow({ search, busy, onRun, onEdit, onDelete }: { search: Search; busy: boolean; onRun: () => void; onEdit: () => void; onDelete: () => void }) {
   return (
     <article className="search-row">
       <div className="search-row-icon">⌕</div>
@@ -220,6 +240,7 @@ function SearchRow({ search, busy, onEdit, onDelete }: { search: Search; busy: b
         </div>
       </div>
       <div className="search-row-actions">
+        <button className="button button-primary" disabled={busy} onClick={onRun}>{busy ? 'Запускаю…' : 'Запустить'}</button>
         <button className="button button-secondary" onClick={onEdit}>Изменить</button>
         <button className="icon-button danger-text" aria-label={`Удалить ${search.name}`} disabled={busy} onClick={onDelete}>{busy ? '…' : '×'}</button>
       </div>

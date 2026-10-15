@@ -3,6 +3,7 @@ package ru.avitodeals.ingestion.application;
 import org.junit.jupiter.api.Test;
 import ru.avitodeals.listing.application.ListingCatalog;
 import ru.avitodeals.listing.application.ListingChange;
+import ru.avitodeals.listing.application.DataOrigin;
 import ru.avitodeals.listing.application.ListingData;
 import ru.avitodeals.listing.application.ListingSnapshot;
 import ru.avitodeals.ingestion.infrastructure.MockListingSource;
@@ -93,6 +94,7 @@ class IngestionPipelineTests {
 		List<RawListing> results = source.fetch(new SearchCriteria("pixel", Map.of()));
 
 		assertEquals("mock", source.sourceId());
+		assertEquals(DataOrigin.DEMO, source.dataOrigin());
 		assertEquals(1, results.size());
 		assertTrue(results.getFirst().title().contains("Pixel"));
 		assertFalse(List.of(RawListing.class.getRecordComponents()).stream()

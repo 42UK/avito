@@ -3,6 +3,7 @@ package ru.avitodeals.ingestion.infrastructure.avito;
 import org.junit.jupiter.api.Test;
 import ru.avitodeals.ingestion.application.RawListing;
 import ru.avitodeals.ingestion.application.SearchCriteria;
+import ru.avitodeals.listing.application.DataOrigin;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -38,6 +39,7 @@ class AvitoListingSourceTests {
 				"priceMin", 10000, "priceMax", 60000)));
 
 		assertEquals(properties.getMaxPages(), requestedUris.size());
+		assertEquals(DataOrigin.REAL, source.dataOrigin());
 		assertTrue(requestedUris.getFirst().startsWith("https://www.avito.ru/rossiya?"));
 		assertTrue(requestedUris.getFirst().contains("q=iPhone+"));
 		assertTrue(requestedUris.getFirst().contains("pmin=10000"));

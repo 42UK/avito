@@ -1,9 +1,12 @@
 package ru.avitodeals.api;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.avitodeals.ingestion.application.ListingSourceException;
 import ru.avitodeals.search.application.SearchNotFoundException;
 
 @RestControllerAdvice
@@ -17,5 +20,22 @@ public class ApiExceptionHandler {
 	@ExceptionHandler(SearchNotFoundException.class)
 	ProblemDetail notFound(SearchNotFoundException exception) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+	}
+
+	@ExceptionHandler(ListingSourceException.class)
+	ResponseEntity<ProblemDetail> sourceFailure(ListingSourceException exception) {
+		HttpStatus status = exception.getStatusCode() == 429
+				? HttpStatus.TOO_MANY_REQUESTS : HttpStatus.BAD_GATEWAY;
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(status, exception.getMessage());
+		if (exception.getStatusCode() >= 0) {
+			problem.setProperty("sourceStatus", exception.getStatusCode());
+		}
+		ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+		if (exception.getStatusCode() == 429 && !exception.getRetryAfter().isNegative()
+				&& !exception.getRetryAfter().isZero()) {
+			response.header(HttpHeaders.RETRY_AFTER,
+					Long.toString(Math.max(1, exception.getRetryAfter().toSeconds())));
+		}
+		return response.body(problem);
 	}
 }

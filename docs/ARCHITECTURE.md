@@ -12,9 +12,9 @@ saved search -> ListingSource -> ingestion/persistence -> after-commit event
              -> market-price snapshot -> deal score -> API -> React UI
 ```
 
-`ListingIngested` and `ListingPriceChanged` are handled after the ingestion transaction commits. Analysis runs in a new transaction and persists matching, valuation, and score results; new matching listings also trigger peer rescoring. Comparables are constrained to active listings with the same adapter/source ID, currency, and extracted condition. An H2 application integration test verifies persistence and source-ID isolation; PostgreSQL integration currently verifies migrations, not this entire event flow.
+`ListingIngested` and `ListingPriceChanged` are handled after the ingestion transaction commits. Analysis runs in a new transaction and persists matching, valuation, and score results; new matching listings also trigger peer rescoring. Comparables are constrained to active listings with the same adapter/source ID, data origin, currency, and extracted condition. An H2 application integration test verifies persistence and comparable isolation; PostgreSQL integration verifies the migration and legacy-origin backfill, not the complete event flow.
 
-The public Avito adapter is an optional source, not a claim of successful collection. It does not bypass source protections. The mock/demo adapter is not a real source. Source-ID isolation is not equivalent to the missing `REAL`/`IMPORTED`/`DEMO` provenance model.
+The public Avito adapter declares origin `REAL`, and the mock adapter declares `DEMO`; other adapters default to `DEMO` unless they explicitly declare an origin. This provenance label does not confirm source permission or successful collection. The mock/demo adapter is not a real source.
 
 ## Runtime and build
 

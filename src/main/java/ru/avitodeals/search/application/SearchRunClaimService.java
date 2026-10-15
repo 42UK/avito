@@ -48,6 +48,17 @@ public class SearchRunClaimService {
 	}
 
 	@Transactional
+	public SearchRunSnapshot claimNow(UUID searchId) {
+		keyLock.acquire("search-run:" + searchId);
+		Search search = searchRepository.findByIdForUpdate(searchId)
+				.orElseThrow(() -> new SearchNotFoundException(searchId));
+		Instant now = clock.instant();
+		search.setLastRunAt(now);
+		searchRepository.save(search);
+		return new SearchRunSnapshot(search.getId(), search.getName(), search.getQuery(), search.getFilters(), now);
+	}
+
+	@Transactional
 	public void releaseRateLimitedClaim(UUID searchId, Instant claimedAt) {
 		keyLock.acquire("search-run:" + searchId);
 		Search search = searchRepository.findByIdForUpdate(searchId).orElse(null);

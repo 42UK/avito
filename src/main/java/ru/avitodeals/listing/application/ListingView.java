@@ -18,5 +18,25 @@ public record ListingView(
 		String status,
 		UUID sellerId,
 		Instant firstSeenAt,
-		Instant lastSeenAt) {
+		Instant lastSeenAt,
+		DataOrigin dataOrigin) {
+
+	public ListingView(
+			UUID id,
+			String source,
+			String externalId,
+			String title,
+			String description,
+			BigDecimal price,
+			String currency,
+			String condition,
+			String location,
+			String url,
+			String status,
+			UUID sellerId,
+			Instant firstSeenAt,
+			Instant lastSeenAt) {
+		this(id, source, externalId, title, description, price, currency, condition, location,
+				url, status, sellerId, firstSeenAt, lastSeenAt, DataOrigin.DEMO);
+	}
 }

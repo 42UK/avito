@@ -34,9 +34,18 @@ export interface SearchInput {
   active: boolean;
 }
 
+export interface IngestionReport {
+  processed: number;
+  duplicates: number;
+  created: number;
+  priceChanges: number;
+  removed: number;
+}
+
 export interface Listing {
   id: string;
   source: string;
+  dataOrigin: 'REAL' | 'IMPORTED' | 'DEMO';
   externalId: string;
   title: string;
   description: string;

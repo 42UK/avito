@@ -22,4 +22,4 @@
 
 ## Source and data semantics
 
-The current schema's `listing.source` identifies the adapter/source string. The analysis pipeline only compares listings with the same source ID, so distinct adapter IDs do not contaminate one another's samples. The schema does not encode the required `REAL`, `IMPORTED`, and `DEMO` provenance categories and cannot enforce that distinction independently. Do not treat `mock` or demo results as real-market evidence.
+The `listing.data_origin` field stores `REAL`, `IMPORTED`, or `DEMO`; source adapters declare their origin, and the listing API exposes it. The analysis pipeline compares only records with the same source ID and origin, as well as matching currency and condition. Legacy `avito` rows are migrated as `REAL`; all other legacy sources default to `DEMO`. `REAL` describes adapter provenance, not verified access permission or a verified completed collection. CSV/JSON import is not implemented yet; do not treat `mock` or demo rows as market evidence.

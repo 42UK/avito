@@ -7,7 +7,7 @@ Current persisted concepts include:
 | Entity/table | Purpose |
 |---|---|
 | `search` | User-configured query, JSON filters, interval, score threshold and active flag |
-| `listing` | Source-scoped unique external listing, title, price/currency, condition, URL, status, first/last observation |
+| `listing` | Source-scoped unique external listing, `REAL`/`IMPORTED`/`DEMO` provenance, title, price/currency, condition, URL, status, first/last observation |
 | `listing_price_history` | Listing price observations over time |
 | `search_listing` | Association and observation range between saved search and listing |
 | `product`, `product_attribute` | Canonical product identity and extracted attributes |
@@ -20,7 +20,7 @@ PostgreSQL uses UUID keys, `numeric` monetary columns, foreign keys, checks, ind
 
 ## Important gaps from the target model
 
-- `listing.source` is not a normalized `REAL`/`IMPORTED`/`DEMO` origin enum; market queries cannot reliably enforce the requested provenance boundary.
+- `listing.data_origin` is added by V4 and constrained to `REAL`, `IMPORTED`, or `DEMO`. V4 classifies legacy `avito` rows as `REAL` and other legacy rows as `DEMO`; new adapters must declare their origin. This field does not establish access permission or authenticity.
 - There is no persistent cost-analysis/scenario model for logistics, repair, fees, risk reserve, break-even or ROI. The current calculator is stateless.
 - The target tables for watchlist, configuration, ingestion jobs, source status and system events are not all present in the current schema.
 - `market_price` lacks trimmed mean, dispersion, observation age and a dedicated insufficient-data value.

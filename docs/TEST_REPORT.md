@@ -6,12 +6,13 @@ Date: 2026-10-15.
 
 | Check | Result |
 |---|---|
-| Maven canonical backend build | PASS — `./mvnw --batch-mode --no-transfer-progress verify` on Java 21; Maven 3.9.16, Spring Boot 3.5.16, compiler release 21; 150 tests passed. |
-| PostgreSQL migration integration test | PASS — Testcontainers started PostgreSQL 16, Flyway applied all 3 migrations, core tables were verified; 1 test, 0 failures, 0 skips. |
+| Maven canonical backend build | PASS — `./mvnw --batch-mode --no-transfer-progress verify` on Java 21; Maven 3.9.16, Spring Boot 3.5.16, compiler release 21; 151 tests passed, 0 failures/errors/skips. |
+| PostgreSQL migration integration test | PASS — Testcontainers started PostgreSQL 16, applied V1–V3, inserted legacy Avito/mock listings, then applied V4 and verified the backfilled `REAL`/`DEMO` values and provenance column. |
 | Ingestion-to-analysis application integration | PASS — H2-backed Spring application test persisted product matches, same-source market valuations and deal scores; a later listing rescored an earlier peer, and a separate demo source did not affect Avito-source prices. This validates application wiring, not PostgreSQL transaction behavior. |
 | Gradle compatibility backend tests | PASS — `./gradlew --no-daemon test`; full test suite passed after Spring Boot 3 alignment. |
 | Frontend unit tests | PASS — `cd frontend && npm test`; 5 files, 10 tests passed. |
 | Frontend production/type build | PASS — `cd frontend && npm run build`. |
+| Manual search execution | PASS — focused Java tests cover `POST /api/searches/{id}/run`, immediate claim regardless of schedule interval, and ingestion report; frontend: 5 files, 11 tests pass and production/type build succeeds. The endpoint was exercised with the isolated mock source, not a live Avito request. |
 | Maven backend image build | PASS — `docker build --tag dealradar-backend:validation --file Dockerfile .`; no service was started. |
 | Compose build and PostgreSQL-backed startup | PASS before the Maven/Spring Boot 3 migration — PostgreSQL, backend and frontend became healthy; Flyway-backed readiness and API stats responded. |
 | Profitability API smoke test | PASS before the Maven/Spring Boot 3 migration — returned net profit `235.00 RUB`, ROI `25.97%`, break-even, purchase limit and all scenarios. |

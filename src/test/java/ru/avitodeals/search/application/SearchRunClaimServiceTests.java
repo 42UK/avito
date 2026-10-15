@@ -97,6 +97,17 @@ class SearchRunClaimServiceTests {
 	}
 
 	@Test
+	void manualClaimRunsImmediatelyEvenWhenSearchIsInactiveAndRecentlyRun() throws ReflectiveOperationException {
+		Search search = createSearch(false, NOW.minusSeconds(60));
+		repository.saveAndFlush(search);
+
+		SearchRunSnapshot claim = claimService.claimNow(search.getId());
+
+		assertEquals(NOW, claim.claimedAt());
+		assertEquals(NOW, repository.findById(search.getId()).orElseThrow().getLastRunAt());
+	}
+
+	@Test
 	@Transactional(propagation = Propagation.NOT_SUPPORTED)
 	void concurrentClaimsForOneSearchProduceOnlyOneRun() throws Exception {
 		Search search = createSearch(true, null);
