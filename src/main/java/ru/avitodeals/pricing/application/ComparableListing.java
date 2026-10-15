@@ -24,4 +24,15 @@ public record ComparableListing(
 			throw new IllegalArgumentException("Comparable amount must not be negative");
 		}
 	}
+
+	public static ComparableListing withConditionCode(
+			UUID id,
+			UUID productId,
+			String conditionCode,
+			String currency,
+			BigDecimal amount,
+			boolean active) {
+		return new ComparableListing(id, productId, ConditionGroup.valueOf(conditionCode),
+				currency, amount, active);
+	}
 }

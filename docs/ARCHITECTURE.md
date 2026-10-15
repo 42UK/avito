@@ -4,14 +4,17 @@
 
 The repository is a single Java modular monolith with PostgreSQL persistence and a separate React/Vite frontend. Current Java packages separate `api`, `listing`, `ingestion`, `product`, `pricing`, `scoring`, `search`, `notification`, and `shared` responsibilities.
 
-The intended current pipeline is:
+The current ingestion-to-analysis pipeline is:
 
 ```text
-saved search -> ListingSource -> ingestion/persistence -> product matching
+saved search -> ListingSource -> ingestion/persistence -> after-commit event
+             -> isolated analysis transaction -> product matching
              -> market-price snapshot -> deal score -> API -> React UI
 ```
 
-The public Avito adapter is an optional source, not a claim of successful collection. It does not bypass source protections. The mock adapter is not a real source. Ingestion and evaluation behavior must be verified against the deployed code, not inferred from the diagram.
+`ListingIngested` and `ListingPriceChanged` are handled after the ingestion transaction commits. Analysis runs in a new transaction and persists matching, valuation, and score results; new matching listings also trigger peer rescoring. Comparables are constrained to active listings with the same adapter/source ID, currency, and extracted condition. An H2 application integration test verifies persistence and source-ID isolation; PostgreSQL integration currently verifies migrations, not this entire event flow.
+
+The public Avito adapter is an optional source, not a claim of successful collection. It does not bypass source protections. The mock/demo adapter is not a real source. Source-ID isolation is not equivalent to the missing `REAL`/`IMPORTED`/`DEMO` provenance model.
 
 ## Runtime and build
 

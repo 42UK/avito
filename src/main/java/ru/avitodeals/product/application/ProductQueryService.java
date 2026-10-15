@@ -23,4 +23,13 @@ public class ProductQueryService implements ProductQueries {
 		return repository.findByProductIdAndStatus(productId, MatchStatus.MATCHED).stream()
 				.map(match -> match.getListingId()).toList();
 	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public List<ProductMatchResult> matchedListings(UUID productId) {
+		return repository.findByProductIdAndStatus(productId, MatchStatus.MATCHED).stream()
+				.map(match -> new ProductMatchResult(match.getListingId(), match.getProductId(),
+						match.getConfidence(), match.getStatus(), match.getMatcherVersion()))
+				.toList();
+	}
 }

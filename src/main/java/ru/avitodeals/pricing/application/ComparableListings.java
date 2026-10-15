@@ -23,4 +23,14 @@ public record ComparableListings(
 		}
 		listings = List.copyOf(Objects.requireNonNull(listings, "listings"));
 	}
+
+	public static ComparableListings withConditionCode(
+			UUID candidateId,
+			UUID productId,
+			String conditionCode,
+			String currency,
+			List<ComparableListing> listings) {
+		return new ComparableListings(candidateId, productId, ConditionGroup.valueOf(conditionCode),
+				currency, listings);
+	}
 }

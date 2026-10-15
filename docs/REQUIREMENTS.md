@@ -2,7 +2,7 @@
 
 ## Functional requirements
 
-1. **Discover and ingest listings:** support bounded, repeatable searches, pagination, deduplication, and price observations. The current implementation has saved searches, a scheduled ingestion pipeline, and a public-page adapter. It does not yet discover all electronics categories without configured query terms. The persisted ingestion pipeline does not invoke product matching, market pricing, or deal scoring.
+1. **Discover and ingest listings:** support bounded, repeatable searches, pagination, deduplication, and price observations. The current implementation has saved searches, a scheduled ingestion pipeline, and a public-page adapter. Committed new or repriced listings trigger matching, market-price snapshot persistence, and deal scoring; later same-product listings also trigger peer rescoring. It does not yet discover all electronics categories without configured query terms.
 2. **Source handling:** represent the source and status explicitly; stop on access denial and respect server rate limiting. The current Avito adapter has bounded requests and a cooldown on HTTP 429. Reachability was not established in this environment (HTTP 429). Official API or licensed access has not been verified.
 3. **Product resolution:** normalize names, extract category/attributes, match known variants conservatively, and retain uncertainty. The current implementation has deterministic classifiers, extractors, normalizers and matchers; unknown items are not evidence of high match quality.
 4. **Market estimate:** use active, same-product, same-condition, same-currency comparables and robust statistics. The current calculation persists median, P25/P75, confidence, outlier IDs and method. It does not persist the requested trimmed mean, price spread, data age, or a distinct insufficient-data state.
@@ -22,4 +22,4 @@
 
 ## Source and data semantics
 
-The current schema's `listing.source` identifies the adapter/source string. It does not yet encode the required `REAL`, `IMPORTED`, and `DEMO` provenance categories. Consequently the current database cannot enforce strict exclusion of demo data from real-market valuations by provenance. Do not treat `mock` results as market evidence.
+The current schema's `listing.source` identifies the adapter/source string. The analysis pipeline only compares listings with the same source ID, so distinct adapter IDs do not contaminate one another's samples. The schema does not encode the required `REAL`, `IMPORTED`, and `DEMO` provenance categories and cannot enforce that distinction independently. Do not treat `mock` or demo results as real-market evidence.

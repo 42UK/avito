@@ -6,4 +6,6 @@ import java.util.UUID;
 public interface ProductQueries {
 
 	List<UUID> matchedListingIds(UUID productId);
+
+	List<ProductMatchResult> matchedListings(UUID productId);
 }

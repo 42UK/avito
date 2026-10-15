@@ -6,8 +6,9 @@ Date: 2026-10-15.
 
 | Check | Result |
 |---|---|
-| Maven canonical backend build | PASS — `./mvnw --batch-mode --no-transfer-progress verify` on Java 21; Maven 3.9.16, Spring Boot 3.5.16, compiler release 21; 144 tests passed. |
+| Maven canonical backend build | PASS — `./mvnw --batch-mode --no-transfer-progress verify` on Java 21; Maven 3.9.16, Spring Boot 3.5.16, compiler release 21; 150 tests passed. |
 | PostgreSQL migration integration test | PASS — Testcontainers started PostgreSQL 16, Flyway applied all 3 migrations, core tables were verified; 1 test, 0 failures, 0 skips. |
+| Ingestion-to-analysis application integration | PASS — H2-backed Spring application test persisted product matches, same-source market valuations and deal scores; a later listing rescored an earlier peer, and a separate demo source did not affect Avito-source prices. This validates application wiring, not PostgreSQL transaction behavior. |
 | Gradle compatibility backend tests | PASS — `./gradlew --no-daemon test`; full test suite passed after Spring Boot 3 alignment. |
 | Frontend unit tests | PASS — `cd frontend && npm test`; 5 files, 10 tests passed. |
 | Frontend production/type build | PASS — `cd frontend && npm run build`. |
@@ -22,4 +23,4 @@ Date: 2026-10-15.
 
 After the smoke test the temporary Compose services were stopped with `docker compose stop` (the PostgreSQL volume was preserved) to avoid additional source requests from already-active saved searches. The local Compose command starts the services again. Backend compiler emitted an unchecked-operations note in the existing `AvitoHttpPageFetcherTests`; React Router emitted v7 migration warnings during frontend tests.
 
-These checks verify the calculator and local infrastructure, not the complete ingestion → matching → pricing → scoring workflow or real Avito listing collection.
+The H2 integration test verifies the ingestion → matching → pricing → scoring application flow with isolated fixtures. It does not verify the same flow against PostgreSQL or prove real Avito collection.
